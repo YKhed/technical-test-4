@@ -19,7 +19,7 @@ router.get("/list", passport.authenticate("user", { session: false }), async (re
 
 router.get("/:id", passport.authenticate("user", { session: false }), async (req, res) => {
   try {
-    const data = await ProjectObject.find({ _id: req.params.id });
+    const data = await ProjectObject.findOne({ _id: req.params.id });
     return res.status(200).send({ ok: true, data });
   } catch (error) {
     console.log(error);
@@ -29,7 +29,7 @@ router.get("/:id", passport.authenticate("user", { session: false }), async (req
 
 router.post("/", passport.authenticate("user", { session: false }), async (req, res) => {
   try {
-    const data = await ProjectObject.create({ ...req.body, organisation: req.user.organisation });
+    const data = await ProjectObject.create({ ...req.body, organisation: req.user.organisation, members: [req.user._id] });
     return res.status(200).send({ data, ok: true });
   } catch (error) {
     if (error.code === 11000) return res.status(409).send({ ok: false, code: PROJECT_ALREADY_EXISTS });
@@ -40,7 +40,7 @@ router.post("/", passport.authenticate("user", { session: false }), async (req, 
 
 router.get("/", passport.authenticate("user", { session: false }), async (req, res) => {
   try {
-    const data = await ProjectObject.find({ ...req.query, organisation: req.user.organisation }).sort("-last_updated_at");
+    const data = await ProjectObject.find({ ...req.query, members: req.user._id }).sort("-last_updated_at");
     return res.status(200).send({ ok: true, data });
   } catch (error) {
     console.log(error);
